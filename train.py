@@ -139,7 +139,7 @@ class BatchEffectTrainer:
             # --- valid phase ---
             all_data = ConcatData(datas['subject'], datas['qc'])
             all_reses_dict, qc_loss = self.generate(
-                all_data, verbose=False, compute_qc_loss=True)
+                all_data, verbose=True, compute_qc_loss=True)
             # pca
             subject_pca, qc_pca = pca_for_dict(all_reses_dict, 3)
             # plot pca
@@ -328,7 +328,7 @@ class BatchEffectTrainer:
         res = [None, None, None]
         with torch.enable_grad():
             all_loss = 0.
-            hidden = self.models['encoder'](batch_x)
+            hidden = self.models['encoder'](batch_x)            
             # decoder
             batch_ys = [
                 torch.eye(self.batch_label_num)[batch_y[:, 1].long()].to(

@@ -24,7 +24,7 @@ class BaseData(data.Dataset):
 
     def __getitem__(self, indx):
         sample_x, sample_y = self.x_df.values[indx], self.y_df.values[indx]
-        return sample_x, sample_y
+        return sample_x, sample_y.astype(np.int64)
 
     def transform(self, trans):
         ''' transform X and Y '''
@@ -88,30 +88,33 @@ def get_metabolic_data(
 
     # remove peaks that has most zero values in all samples
     meta_df, y_df = all_df.iloc[:, y_num:], all_df.iloc[:, :y_num]
-    mask1 = (meta_df == 0).mean(axis=0) < 0.2
-    meta_df = meta_df.loc[:, mask1]
-    # remove peaks that has most zero values in QCs
-    qc_mask = y_df['class'] == 'QC'
-    qc_meta_df = meta_df.loc[qc_mask, :]
-    mask2 = (qc_meta_df == 0).mean(axis=0) < 0.2
-    meta_df = meta_df.loc[:, mask2]
 
-    # for each peak, impute the zero values with the half of minimum values
-    def impute_zero(peak):
-        zero_mask = peak == 0
-        if zero_mask.any():
-            new_x = peak.copy()
-            impute_value = peak.loc[~zero_mask].min()
-            new_x[zero_mask] = impute_value / 2
-            return new_x
-        return peak
-
-    meta_df = meta_df.apply(impute_zero, axis=0)
+    # not relevant for preprocessed data
+    # mask1 = (meta_df == 0).mean(axis=0) < 0.2
+    # meta_df = meta_df.loc[:, mask1]
+    # # remove peaks that has most zero values in QCs
+    # qc_mask = y_df['class'] == 'QC'
+    # qc_meta_df = meta_df.loc[qc_mask, :]
+    # mask2 = (qc_meta_df == 0).mean(axis=0) < 0.2
+    # meta_df = meta_df.loc[:, mask2]
+    # 
+    # # for each peak, impute the zero values with the half of minimum values
+    # def impute_zero(peak):
+    #     zero_mask = peak == 0
+    #     if zero_mask.any():
+    #         new_x = peak.copy()
+    #         impute_value = peak.loc[~zero_mask].min()
+    #         new_x[zero_mask] = impute_value / 2
+    #         return new_x
+    #     return peak
+    # 
+    # meta_df = meta_df.apply(impute_zero, axis=0)
 
     # extract the useful information from y_file
     y_df = y_df.loc[:, ['injection.order', 'batch', 'group', 'class']]
     # batch labels are transform to beginning from zero
     y_df.loc[:, 'batch'] -= 1
+    
     # digitize group
     y_df['group'].replace('QC', '-1', inplace=True)
     y_df['group'] = y_df['group'].astype('int')
